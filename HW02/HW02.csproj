@@ -183,7 +183,6 @@
     <Compile Include="ClientDataObjects\UserAnswerOfTriviaQuestion.cs" />
     <Compile Include="ClientDataObjects\ViewGameSessionQuestions.cs" />
     <Compile Include="ClientDataObjects\ViewTriviaQuestion.cs" />
-    <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\EndGameSessionController.cs" />
     <Compile Include="Controllers\HighScoreController.cs" />
     <Compile Include="Controllers\PlayerProgressController.cs" />

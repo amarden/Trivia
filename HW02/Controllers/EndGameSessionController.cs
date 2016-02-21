@@ -1,7 +1,9 @@
 ﻿using HW02.DataObjects;
 using HW02.Models;
+using Microsoft.Azure.Mobile.Server;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,7 +12,7 @@ using System.Web.Http;
 
 namespace HW02.Controllers
 {
-    public class EndGameSessionController : ApiController
+    public class EndGameSessionController : TableController<GameSession>
     {
         private MobileServiceContext db = new MobileServiceContext();
 
@@ -19,8 +21,10 @@ namespace HW02.Controllers
         {
             List<PlayerProgress> pp = db.PlayerProgresses
                 .Where(x => x.playerId == session.playerId && x.gameSessionId.Equals(session.gameSessionId)).ToList();
-
-            if(pp.Count == 0)
+            GameSession gs = db.GameSessions
+                .Where(x => x.playerId == session.playerId && x.gameSessionId == session.gameSessionId).Single();
+            gs.state = "Done";
+            if (pp.Count == 0)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest,
                     "Your player id is not associated with the game session");
@@ -32,6 +36,9 @@ namespace HW02.Controllers
             int score = rightAnswers > wrongAnswers ? rightAnswers - wrongAnswers : 0;
             int rank = compareScore(session.playerId, score);
 
+            db.PlayerProgresses.RemoveRange(pp);
+            db.Entry(gs).State = EntityState.Modified;
+            db.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 score = score,
@@ -41,7 +48,7 @@ namespace HW02.Controllers
 
         private int compareScore(string playerId, int score)
         {
-            HighScore hs = new HighScore { playerId = playerId, score = score };
+            HighScore hs = new HighScore { playerId = playerId, score = score, Id = Guid.NewGuid().ToString() };
 
             int rank = -1;
             var highScores = db.HighScores
@@ -68,8 +75,6 @@ namespace HW02.Controllers
                 var highScoreToRemove = highScores.Where(x => x.score == lowestScore).First();
                 db.HighScores.Remove(highScoreToRemove);
             }
-
-            db.SaveChanges();
 
             return rank;
         }

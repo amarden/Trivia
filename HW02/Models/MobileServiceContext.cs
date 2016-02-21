@@ -27,6 +27,7 @@ namespace HW02.Models
         }
 
         public DbSet<TriviaQuestion> TriviaQuestions{ get; set; }
+        public DbSet<GameSession> GameSessions { get; set; }
         public DbSet<HighScore> HighScores { get; set; }
         public DbSet<PlayerProgress> PlayerProgresses { get; set; }
 

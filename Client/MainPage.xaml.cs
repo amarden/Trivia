@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -41,8 +42,10 @@ namespace Client
             this.playerId = "amarden";
             this.gameSessionId = "63f4625c-1f27-448a-986e-b3ca273688c2";
             this.InitializeComponent();
+            showStart();
             //startSession();
-            populateSessionQuestions();
+            //populateSessionQuestions();
+            //endGame();
         }
 
         public void setQuestion(ViewGameSessionQuestions question)
@@ -104,7 +107,7 @@ namespace Client
                 }
                 progressBar.IsIndeterminate = false;
                 nextQuestion();
-                var submitBtn = (Button)FindName("SubmitBtn");
+                var submitBtn = (Button)FindName("submitBtn");
                 submitBtn.IsEnabled = false;
             }
         }
@@ -115,8 +118,11 @@ namespace Client
             {
                 endGame();
             }
-            var currentQuestion = this.sessionQuestions.First();
-            setQuestion(currentQuestion);
+            else
+            {
+                var currentQuestion = this.sessionQuestions.First();
+                setQuestion(currentQuestion);
+            }
         }
 
         private async void endGame()
@@ -151,9 +157,14 @@ namespace Client
                         break;
                 }
 
-                string scoreNarrative = "You got a score of " + score + " " + highScoreText;
+                string scoreNarrative = "You got a score of " + score + " \n\n" + highScoreText;
                 scoreText.Text = scoreNarrative;
+                hideElement("terminateBtn");
+                hideElement("suspendBtn");
+                hideElement("question");
+                hideElement("submitBtn");
                 showElement("gameScoreText");
+                showElement("newGameBtn");
             }
             progressBar.IsIndeterminate = false;
         }
@@ -162,10 +173,12 @@ namespace Client
         {
             var incorrectText = (TextBlock)FindName("incorrectText");
             incorrectText.Visibility = Visibility.Visible;
-            Task.Delay(2000).ContinueWith(_ =>
-            {
-                incorrectText.Visibility = Visibility.Collapsed;
-            });
+            incorrectText.Visibility = Visibility.Collapsed;
+
+            //Task.Delay(2000).ContinueWith(_ =>
+            //{
+            //    incorrectText.Visibility = Visibility.Collapsed;
+            //});
         }
 
         private void showCorrect()
@@ -176,17 +189,41 @@ namespace Client
         }
 
         #region Bootstrap Session
-        private async void startSession()
+        private async void startSession(object sender, TappedRoutedEventArgs e)
         {
-            var scoreText = (TextBlock)FindName("gameScoreText");
-            scoreText.Text = "";
-            hideElement("gameScoreText");
+            hideStart();
+            var numQuestions = (TextBox)FindName("numQuestionText");
+            var idText = (TextBox)FindName("playerIdText");
+            this.playerId = idText.Text;
             progressBar.IsIndeterminate = true;
-            int numberOfQuestions = 10;
+            int numberOfQuestions = getQuestionNumber();
             var parameters = new Dictionary<string, string> { ["triviaQCount"] = numberOfQuestions.ToString() };
             var questions = await MobileServiceDotNet.InvokeApiAsync<List<TriviaQuestion>>("triviaquestions", HttpMethod.Get, parameters);
             var ids = questions.Select(x => new TriviaId { id = x.Id }).ToList();
             startGameSession(ids);
+        }
+
+        private int getQuestionNumber()
+        {
+            var textBox = (TextBox)FindName("numQuestionText");
+            var num = textBox.Text;
+            if (num == "")
+            {
+                return 10;
+            }
+            else
+            {
+                int quesNumber;
+                if (Int32.TryParse(num, out quesNumber))
+                {
+                    return quesNumber;
+                }
+                else
+                {
+                    //Not a number
+                    return 99;
+                }
+            }
         }
 
         private async void startGameSession(List<TriviaId> ids)
@@ -197,6 +234,7 @@ namespace Client
             if (resultJson.HasValues)
             {
                 this.gameSessionId = resultJson.Value<string>("gameSessionId");
+                populateSessionQuestions();
             }
         }
 
@@ -209,12 +247,63 @@ namespace Client
             };
 
             this.sessionQuestions = await MobileServiceDotNet.InvokeApiAsync<List<ViewGameSessionQuestions>>("playerprogress", HttpMethod.Get, parameters);
+            this.sessionQuestions = this.sessionQuestions.Where(x => x.proposedAnswer == "?").ToList();
             nextQuestion();
             progressBar.IsIndeterminate = false;
+        }
+
+        private void checkContinueGame(object sender, TappedRoutedEventArgs e)
+        {
+
+        }
+
+        private void terminateGame(object sender, TappedRoutedEventArgs e)
+        {
+            endGame();
+        }
+
+        private void suspendGame(object sender, TappedRoutedEventArgs e)
+        {
+            showStart();
         }
         #endregion
 
         #region UI Methods
+        private void showStart()
+        {
+            var scoreText = (TextBlock)FindName("gameScoreText");
+            scoreText.Text = "";
+            hideElement("newGameBtn");
+            hideElement("gameScoreText");
+            hideElement("question");
+            hideElement("answerOne");
+            hideElement("answerTwo");
+            hideElement("answerThree");
+            hideElement("answerFour");
+            hideElement("submitBtn");
+            hideElement("terminateBtn");
+            hideElement("suspendBtn");
+            showElement("startNewBtn");
+            showElement("continueBtn");
+            showElement("playerLabelText");
+            showElement("playerIdText");
+            showElement("numQuestionLabelText");
+            showElement("numQuestionText");
+
+        }
+        private void hideStart()
+        {
+            showElement("question");
+            showElement("submitBtn");
+            showElement("terminateBtn");
+            showElement("suspendBtn");
+            hideElement("startNewBtn");
+            hideElement("continueBtn");
+            hideElement("playerIdText");
+            hideElement("playerLabelText");
+            hideElement("numQuestionLabelText");
+            hideElement("numQuestionText");
+        }
         private void showElement(string name)
         {
             var element = (FrameworkElement)FindName(name);
@@ -236,14 +325,21 @@ namespace Client
         private void setRadioBtnText(string name, string text)
         {
             var radioBtn = (RadioButton)FindName(name);
+            radioBtn.IsChecked = false;
             radioBtn.Content = text;
         }
 
         private void answerSelected(object sender, RoutedEventArgs e)
         {
-            var submitBtn = (Button)FindName("SubmitBtn");
+            var submitBtn = (Button)FindName("submitBtn");
             submitBtn.IsEnabled = true;
         }
+
         #endregion
+
+        private void newGame(object sender, TappedRoutedEventArgs e)
+        {
+            showStart();
+        }
     }
 }

@@ -60,7 +60,7 @@ namespace HW02.Controllers
                 "correct" :
                 "incorrect";
             db.Entry(playerQuestion).State = EntityState.Modified;
-            db.SaveChangesAsync();
+            db.SaveChanges();
             return new AnswerEvaluation { answerEvaluation = playerQuestion.answerEvaluation };
         }
 

@@ -58,11 +58,20 @@ namespace HW02.Controllers
                     idsNotFound
                 });
             }
+            var gameSession = new GameSession
+            {
+                playerId = gameInfo.playerId,
+                gameSessionId = newGameSession.gameSessionId,
+                Id = Guid.NewGuid().ToString(),
+                state = "In Progress"
+            };
             db.PlayerProgresses.AddRange(playerProgressQuestions);
+            db.GameSessions.Add(gameSession);
             db.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
-                newGameSession
+                gameSessionId = newGameSession.gameSessionId,
+                playerId = newGameSession.playerId
             });
         }
 
