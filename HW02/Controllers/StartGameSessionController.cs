@@ -13,7 +13,7 @@ using System.Web.Http;
 
 namespace HW02.Controllers
 {
-    public class StartGameSessionController : ApiController
+    public class StartGameSessionController : TableController<GameSession>
     {
         private MobileServiceContext db = new MobileServiceContext();
 
@@ -22,7 +22,7 @@ namespace HW02.Controllers
         {
             var newGameSession = new GameSession();
             newGameSession.playerId = gameInfo.playerId;
-            newGameSession.gameSessionId = Guid.NewGuid();
+            newGameSession.gameSessionId = Guid.NewGuid().ToString();
 
             if (gameInfo.triviaIds.Count() == 0 || gameInfo.triviaIds.Count() > 30)
             {
@@ -31,9 +31,9 @@ namespace HW02.Controllers
             }
             var idsNotFound = new List<Object>();
             var playerProgressQuestions = new List<PlayerProgress>();
-            foreach (string triviaId in gameInfo.triviaIds)
+            foreach (var triviaId in gameInfo.triviaIds)
             {
-                var triviaQuestion = db.TriviaQuestions.Where(x => x.Id == triviaId).SingleOrDefault();
+                var triviaQuestion = db.TriviaQuestions.Where(x => x.Id == triviaId.id).SingleOrDefault();
                 if (triviaQuestion == null)
                 {
                     var idNotFound = new { id = triviaId };
@@ -42,10 +42,12 @@ namespace HW02.Controllers
                 else
                 {
                     var playerProgress = new PlayerProgress();
-                    playerProgress.triviaQuestionId = triviaId;
+                    playerProgress.Id = Guid.NewGuid().ToString();
+                    playerProgress.triviaQuestionId = triviaId.id;
                     playerProgress.playerId = gameInfo.playerId;
                     playerProgress.gameSessionId = newGameSession.gameSessionId;
                     playerProgress.proposedAnswer = "?";
+                    playerProgress.TriviaQuestion = triviaQuestion;
                     playerProgressQuestions.Add(playerProgress);
                 }
             }
@@ -57,12 +59,12 @@ namespace HW02.Controllers
                 });
             }
             db.PlayerProgresses.AddRange(playerProgressQuestions);
+            db.SaveChanges();
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 newGameSession
             });
         }
-
 
         protected override void Dispose(bool disposing)
         {

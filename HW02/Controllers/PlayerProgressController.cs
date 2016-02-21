@@ -16,39 +16,47 @@ using System.Data.Entity;
 
 namespace HW02.Controllers
 {
-    public class PlayerProgressController : ApiController
+    public class PlayerProgressController : TableController<PlayerProgress>
     {
         private MobileServiceContext db = new MobileServiceContext();
 
         [HttpGet]
-        public IQueryable<ViewGameSessionQuestions> GetPlayerProgress(string playerId, string gameSessionId)
+        public List<ViewGameSessionQuestions> GetPlayerProgress(string playerId, string gameSessionId)
         {
-            var config = new MapperConfiguration(cfg => 
-                cfg.CreateMap<PlayerProgress, ViewGameSessionQuestions>()
-                .ForMember(dto => dto.questionText, opt=>opt.MapFrom(x=>x.triviaQuestion.questionText))
-                .ForMember(dto => dto.answerOne, opt=>opt.MapFrom(x=>x.triviaQuestion.answerOne))
-                .ForMember(dto => dto.answerTwo, opt => opt.MapFrom(x => x.triviaQuestion.answerTwo))
-                .ForMember(dto => dto.answerThree, opt => opt.MapFrom(x => x.triviaQuestion.answerThree))
-                .ForMember(dto => dto.answerFour, opt => opt.MapFrom(x => x.triviaQuestion.answerFour))
-                );
-            string playerGameSessionId = playerId + "-" + gameSessionId;
-            return db.PlayerProgresses.Where(x => x.playerId == playerId && x.gameSessionId.Equals(gameSessionId))
-                .ProjectTo<ViewGameSessionQuestions>(config);
+            var gameSessionQuestions = new List<ViewGameSessionQuestions>();
+            var gameProgress = db.PlayerProgresses.Where(x => x.playerId == playerId && x.gameSessionId == gameSessionId).ToList();
+
+            foreach(var question in gameProgress)
+            {
+                var vgs = new ViewGameSessionQuestions();
+                vgs.Id = question.triviaQuestionId;
+                TriviaQuestion tq = db.TriviaQuestions.Where(x => x.Id == question.triviaQuestionId).Single();
+                vgs.answerOne = tq.answerOne;
+                vgs.answerTwo = tq.answerTwo;
+                vgs.answerThree = tq.answerThree;
+                vgs.answerFour = tq.answerFour;
+                vgs.proposedAnswer = question.proposedAnswer;
+                vgs.questionText = tq.questionText;
+                gameSessionQuestions.Add(vgs);
+            }
+
+            return gameSessionQuestions;
         }
 
         [HttpPatch]
-        public AnswerEvaluation PatchPlayerProgress(PlayerProgress patch)
+        public AnswerEvaluation PatchPlayerProgress(UserAnswerOfTriviaQuestion patch)
         {
             var playerQuestion = db.PlayerProgresses
                 .Where(x => x.playerId == patch.playerId && x.gameSessionId.Equals(patch.gameSessionId) && 
-                            x.triviaQuestionId == patch.triviaQuestionId)
+                            x.triviaQuestionId == patch.id)
                 .Single();
-            if(playerQuestion.proposedAnswer != "?")
+            var triviaQuestion = db.TriviaQuestions.Where(x => x.Id == patch.id).SingleOrDefault();
+            if (playerQuestion.proposedAnswer != "?")
             {
                 throw new HttpException(400, "You tried to answer a question you already answered");
             }
             playerQuestion.proposedAnswer = patch.proposedAnswer;
-            playerQuestion.answerEvaluation = playerQuestion.triviaQuestion.correctAnswer == playerQuestion.proposedAnswer ?
+            playerQuestion.answerEvaluation = triviaQuestion.correctAnswer == playerQuestion.proposedAnswer ?
                 "correct" :
                 "incorrect";
             db.Entry(playerQuestion).State = EntityState.Modified;

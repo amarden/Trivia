@@ -10,7 +10,7 @@ namespace HW02.DataObjects
     public class GameSession : EntityData
     {
         public string playerId { get; set; }
-        public Guid gameSessionId { get; set; }
+        public string gameSessionId { get; set; }
         public string state { get; set; }
     }
 }

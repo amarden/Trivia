@@ -33,6 +33,13 @@ namespace HW02.Controllers
         }
 
         [HttpGet]
+        [Route("Test")]
+        public string Test(string test)
+        {
+            return test;
+        }
+
+        [HttpGet]
         public IQueryable<TriviaQuestion> GetRandomSetOfTriviaQuestions(int triviaQCount)
         {
             return Query().OrderBy(x => Guid.NewGuid()).Take(triviaQCount);

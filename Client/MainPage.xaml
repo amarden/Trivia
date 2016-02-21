@@ -1,0 +1,59 @@
+﻿<Page
+    x:Class="Client.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Client"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="500*"/>
+            <RowDefinition Height="140*"/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="correctText" Visibility="Collapsed" Canvas.ZIndex="100" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="50" Text="CORRECT!" Foreground="Green"></TextBlock>
+        <TextBlock x:Name="incorrectText" Visibility="Collapsed" Canvas.ZIndex="100" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="50" Text="INCORRECT!" Foreground="Red"></TextBlock>
+        <Grid Name="QuestionGrid" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <ProgressBar Name="progressBar" Background="Transparent" Height="10" IsIndeterminate="True" VerticalAlignment="Bottom" Grid.Row="0"/>
+            <TextBlock x:Name="question" TextWrapping="Wrap" Text="" FontSize="48" Grid.Row="0"/>
+            <TextBlock x:Name="gameScoreText" Visibility="Collapsed" TextWrapping="Wrap" Text="" FontSize="48" Grid.Row="0"/>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="10*" />
+                </Grid.ColumnDefinitions>
+                <RadioButton x:Name="answerOne" GroupName="TriviaAnswer" Grid.Column="1" Checked="answerSelected" HorizontalAlignment="Stretch" />
+            </Grid>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="10*" />
+                </Grid.ColumnDefinitions>
+                <RadioButton x:Name="answerTwo" GroupName="TriviaAnswer" Grid.Column="1" Checked="answerSelected" HorizontalAlignment="Stretch" />
+            </Grid>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="10*" />
+                </Grid.ColumnDefinitions>
+                <RadioButton x:Name="answerThree" GroupName="TriviaAnswer" Grid.Column="1" Checked="answerSelected" HorizontalAlignment="Stretch" />
+            </Grid>
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="10*" />
+                </Grid.ColumnDefinitions>
+                <RadioButton x:Name="answerFour" GroupName="TriviaAnswer" Grid.Column="1" Checked="answerSelected" HorizontalAlignment="Stretch" />
+            </Grid>
+        </Grid>
+        <Button x:Name="SubmitBtn" Content="Submit Answer" HorizontalAlignment="Left" Margin="0,108,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False" Tapped="submitQuestion"/>
+    </Grid>
+</Page>

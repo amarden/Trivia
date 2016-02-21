@@ -33,6 +33,10 @@ namespace HW02.Models
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<PlayerProgress>()
+                .HasRequired(p => p.TriviaQuestion)
+                ;
+
             modelBuilder.Conventions.Add(
                 new AttributeToColumnAnnotationConvention<TableColumnAttribute, string>(
                     "ServiceTableColumn", (property, attributes) => attributes.Single().ColumnType.ToString()));
