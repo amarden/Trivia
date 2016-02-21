@@ -1,5 +1,6 @@
 ﻿using HW02.DataObjects;
 using HW02.Models;
+using Microsoft.Azure.Mobile.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,12 @@ using System.Web.Http;
 
 namespace HW02.Controllers
 {
-    public class HighScoreController : ApiController
+    public class HighScoreController : TableController<HighScore>
     {
         private MobileServiceContext db = new MobileServiceContext();
 
         [HttpGet]
-        public HttpResponseMessage EndGame(string playerId)
+        public HttpResponseMessage Get(string playerId)
         {
             var highScores = db.HighScores
                 .Where(x => x.playerId == playerId)

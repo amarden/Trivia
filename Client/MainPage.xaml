@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="400*"/>
@@ -22,6 +21,37 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
+            <Button x:Name="showHighScoreBtn" Grid.Row="0" Width="150" Visibility="Visible" Content="Show High Scores" HorizontalAlignment="Right" VerticalAlignment="Bottom" Tapped="loadHighScores">
+                <Button.Flyout>
+                    <Flyout Placement="Bottom">
+                        <Grid Width="100" Height="200">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="highScoreOne"  FontSize="10" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreTwo"  FontSize="10" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreThree"  FontSize="10" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreFour"  FontSize="10" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreFive"  FontSize="10" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreSix"  FontSize="10" Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreSeven"  FontSize="10" Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreEight"  FontSize="10" Grid.Row="7" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreNine"  FontSize="10" Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <TextBlock x:Name="highScoreTen"  FontSize="10" Grid.Row="9" VerticalAlignment="Center" HorizontalAlignment="left"/>
+                            <ProgressBar Name="scoreProgressBar" VerticalAlignment="Center" IsIndeterminate="False" Background="Transparent"/>
+                        </Grid>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
             <ProgressBar Name="progressBar" Background="Transparent" Height="10" IsIndeterminate="True" VerticalAlignment="Bottom" Grid.Row="0"/>
             <TextBlock x:Name="question" TextWrapping="Wrap" Text="" FontSize="48" Grid.Row="0"/>
             <TextBlock x:Name="gameScoreText" Visibility="Collapsed" TextWrapping="Wrap" Text="" FontSize="48" Grid.Row="0"/>
@@ -71,13 +101,21 @@
                 <Button x:Name="submitBtn" Visibility="Collapsed" Content="Submit Answer" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False" Tapped="submitQuestion"/>
             </Grid>
             <Grid Grid.Row="1">
-                <Button x:Name="startNewBtn" Content="Start New Game"  HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="True" Tapped="startSession"/>
-                <Button x:Name="continueBtn" Content="Continue Past Game"  HorizontalAlignment="Right" VerticalAlignment="Center" IsEnabled="True" Tapped="checkContinueGame"/>
-                <Button x:Name="terminateBtn" Visibility="Collapsed" Content="Terminate Game" HorizontalAlignment="Left" VerticalAlignment="Center" Tapped="terminateGame"/>
-                <Button x:Name="suspendBtn" Visibility="Collapsed" Content="Suspend Game" HorizontalAlignment="Right" VerticalAlignment="Center" Tapped="suspendGame"/>
+                <Button x:Name="startNewBtn" Content="Start New Game"  HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="True" Tapped="startSession"/>
                 <Button x:Name="newGameBtn" Visibility="Collapsed" Content="New Game" HorizontalAlignment="Center" VerticalAlignment="Center" Tapped="newGame"/>
+                <Button x:Name="terminateBtn" Visibility="Collapsed" Content="Quit Game" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <Grid Width="200" Height="75">
+                                <TextBlock Text="Are You Sure?" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                                <Button x:Name="suspendYesBtn" Visibility="Visible" Content="Yes" HorizontalAlignment="Center" VerticalAlignment="Bottom" Tapped="suspendGame"/>
+                            </Grid>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
             </Grid>
         </Grid>
-
     </Grid>
+    
 </Page>
+    

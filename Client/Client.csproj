@@ -98,8 +98,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AppData.cs" />
     <Compile Include="DataObjects\ClientStartGameSession.cs" />
     <Compile Include="DataObjects\GameSession.cs" />
+    <Compile Include="DataObjects\HighScore.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

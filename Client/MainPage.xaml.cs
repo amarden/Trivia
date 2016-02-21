@@ -1,4 +1,5 @@
-﻿using HW02.ClientDataObjects;
+﻿using Client.DataObjects;
+using HW02.ClientDataObjects;
 using HW02.DataObjects;
 using Microsoft.WindowsAzure.MobileServices;
 using Newtonsoft.Json.Linq;
@@ -30,22 +31,28 @@ namespace Client
     public sealed partial class MainPage : Page
     {
         private MobileServiceClient MobileServiceDotNet = new MobileServiceClient("http://localhost:57484");
-        private string playerId;
-        private string gameSessionId;
         private string triviaQuestionId;
+        AppData localData;
         private List<ViewGameSessionQuestions> sessionQuestions = new List<ViewGameSessionQuestions>();
 
-
         List<string> answerChoices = new List<string> { "answerOne", "answerTwo", "answerThree", "answerFour" };
+        List<string> highScoreLabels = new List<string>
+        {
+            "highScoreOne", "highScoreTwo", "highScoreThree", "highScoreFour", "highScoreFive",
+            "highScoreSix", "highScoreSeven", "highScoreEight", "highScoreNine", "highScoreTen"
+        };
         public MainPage()
         {
-            this.playerId = "amarden";
-            this.gameSessionId = "63f4625c-1f27-448a-986e-b3ca273688c2";
             this.InitializeComponent();
-            showStart();
-            //startSession();
-            //populateSessionQuestions();
-            //endGame();
+            this.localData = new AppData();
+            if(this.localData.getPlayerId() != null && this.localData.getGameSession() != null)
+            {
+                populateSessionQuestions();
+            }
+            else
+            {
+                showStart();
+            }
         }
 
         public void setQuestion(ViewGameSessionQuestions question)
@@ -60,6 +67,7 @@ namespace Client
             showElement("answerTwo");
             showElement("answerThree");
             showElement("answerFour");
+            showElement("question");
         }
 
         public async void submitQuestion(object sender, TappedRoutedEventArgs e)
@@ -77,8 +85,8 @@ namespace Client
             }
             var userAnswer = new UserAnswerOfTriviaQuestion
             {
-                playerId = this.playerId,
-                gameSessionId = this.gameSessionId,
+                playerId = localData.getPlayerId(),
+                gameSessionId = localData.getGameSession(),
                 id = this.triviaQuestionId,
                 proposedAnswer = chosenAnswer
             };
@@ -129,10 +137,11 @@ namespace Client
         {
             progressBar.IsIndeterminate = true;
             // Make the call to the hello resource asynchronously using POST verb
-            JToken payload = JObject.FromObject(JToken.FromObject(new { playerId = playerId, gameSessionId = this.gameSessionId }));
+            JToken payload = JObject.FromObject(JToken.FromObject(new { playerId = localData.getPlayerId(), gameSessionId = localData.getGameSession() }));
             var resultJson = await MobileServiceDotNet.InvokeApiAsync("endgamesession", payload);
             if (resultJson.HasValues)
             {
+                this.localData.clearGameSession();
                 string score = resultJson.Value<string>("score");
                 string beat = resultJson.Value<string>("highScoreBeat");
                 var scoreText = (TextBlock)FindName("gameScoreText");
@@ -160,13 +169,12 @@ namespace Client
                 string scoreNarrative = "You got a score of " + score + " \n\n" + highScoreText;
                 scoreText.Text = scoreNarrative;
                 hideElement("terminateBtn");
-                hideElement("suspendBtn");
                 hideElement("question");
                 hideElement("submitBtn");
                 showElement("gameScoreText");
                 showElement("newGameBtn");
+                progressBar.IsIndeterminate = false;
             }
-            progressBar.IsIndeterminate = false;
         }
 
         private void showIncorrect()
@@ -194,7 +202,7 @@ namespace Client
             hideStart();
             var numQuestions = (TextBox)FindName("numQuestionText");
             var idText = (TextBox)FindName("playerIdText");
-            this.playerId = idText.Text;
+            this.localData.setPlayerId(idText.Text);
             progressBar.IsIndeterminate = true;
             int numberOfQuestions = getQuestionNumber();
             var parameters = new Dictionary<string, string> { ["triviaQCount"] = numberOfQuestions.ToString() };
@@ -229,32 +237,30 @@ namespace Client
         private async void startGameSession(List<TriviaId> ids)
         {
             // Make the call to the hello resource asynchronously using POST verb
-            JToken payload = JObject.FromObject(JToken.FromObject(new { playerId = playerId, triviaIds = ids.ToArray() }));
+            JToken payload = JObject.FromObject(JToken.FromObject(new { playerId = localData.getPlayerId(), triviaIds = ids.ToArray() }));
             var resultJson = await MobileServiceDotNet.InvokeApiAsync("startgamesession", payload);
             if (resultJson.HasValues)
             {
-                this.gameSessionId = resultJson.Value<string>("gameSessionId");
+                var gameSession = resultJson.Value<string>("gameSessionId");
+                this.localData.setGameSession(gameSession);
                 populateSessionQuestions();
             }
         }
 
         private async void populateSessionQuestions()
         {
+            progressBar.IsIndeterminate = true;
+            hideStart();
             var parameters = new Dictionary<string, string>
             {
-                ["playerId"] = this.playerId,
-                ["gameSessionId"] = this.gameSessionId,
+                ["playerId"] = localData.getPlayerId(),
+                ["gameSessionId"] = localData.getGameSession(),
             };
 
             this.sessionQuestions = await MobileServiceDotNet.InvokeApiAsync<List<ViewGameSessionQuestions>>("playerprogress", HttpMethod.Get, parameters);
             this.sessionQuestions = this.sessionQuestions.Where(x => x.proposedAnswer == "?").ToList();
             nextQuestion();
             progressBar.IsIndeterminate = false;
-        }
-
-        private void checkContinueGame(object sender, TappedRoutedEventArgs e)
-        {
-
         }
 
         private void terminateGame(object sender, TappedRoutedEventArgs e)
@@ -271,6 +277,7 @@ namespace Client
         #region UI Methods
         private void showStart()
         {
+            progressBar.IsIndeterminate = false;
             var scoreText = (TextBlock)FindName("gameScoreText");
             scoreText.Text = "";
             hideElement("newGameBtn");
@@ -282,9 +289,7 @@ namespace Client
             hideElement("answerFour");
             hideElement("submitBtn");
             hideElement("terminateBtn");
-            hideElement("suspendBtn");
             showElement("startNewBtn");
-            showElement("continueBtn");
             showElement("playerLabelText");
             showElement("playerIdText");
             showElement("numQuestionLabelText");
@@ -296,9 +301,7 @@ namespace Client
             showElement("question");
             showElement("submitBtn");
             showElement("terminateBtn");
-            showElement("suspendBtn");
             hideElement("startNewBtn");
-            hideElement("continueBtn");
             hideElement("playerIdText");
             hideElement("playerLabelText");
             hideElement("numQuestionLabelText");
@@ -340,6 +343,20 @@ namespace Client
         private void newGame(object sender, TappedRoutedEventArgs e)
         {
             showStart();
+        }
+
+        private async void loadHighScores(object sender, TappedRoutedEventArgs e)
+        {
+            scoreProgressBar.IsIndeterminate = true;
+            var parameters = new Dictionary<string, string> { ["playerId"] = this.localData.getPlayerId() };
+            var highScores = await MobileServiceDotNet.InvokeApiAsync<List<HighScore>>("highscore", HttpMethod.Get, parameters);
+            for (int i=1; i <= highScores.Count; i++)
+            {
+                var scoreString = i + ". " + highScores[i - 1].score + " - " + highScores[i - 1].date;
+                var element = (TextBlock)FindName(this.highScoreLabels[i - 1]);
+                element.Text = scoreString;
+            }
+            scoreProgressBar.IsIndeterminate = false;
         }
     }
 }
